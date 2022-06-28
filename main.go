@@ -3,18 +3,22 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/dlasky/gotk3-layershell/layershell"
-	"github.com/gotk3/gotk3/gtk"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/dlasky/gotk3-layershell/layershell"
+	"github.com/gotk3/gotk3/gtk"
+	log "github.com/sirupsen/logrus"
 )
 
 const ver = "0.0.1"
 
 var (
-	wayland bool
+	wayland   bool
+	briSlider *gtk.Scale
+	conSlider *gtk.Scale
+	combo     *gtk.ComboBoxText
 )
 
 var executor = flag.Bool("e", false, "print brightness Executor data")
@@ -51,9 +55,9 @@ func main() {
 
 	wayland = waylandSession()
 
-	brightness := getBrightness()
-	contrast := getContrast()
-	activePreset := getActivePreset()
+	// brightness := getBrightness()
+	// contrast := getContrast()
+	// activePreset := getActivePreset()
 	name, presets, err := getPresets()
 	if err == nil {
 		fmt.Println(name)
@@ -86,7 +90,7 @@ func main() {
 	grid, _ := gtk.GridNew()
 	grid.SetColumnSpacing(6)
 	grid.SetRowSpacing(12)
-	grid.SetColumnHomogeneous(true)
+	// grid.SetColumnHomogeneous(true)
 	_ = grid.SetProperty("margin", 6)
 	frame.Add(grid)
 
@@ -95,18 +99,18 @@ func main() {
 	lbl.SetMarkup("<tt>Brightness:</tt>")
 	grid.Attach(lbl, 0, 0, 1, 1)
 
-	briSlider, _ := gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 100, 1)
+	briSlider, _ = gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 100, 1)
 	grid.Attach(briSlider, 1, 0, 2, 1)
-	briSlider.SetValue(float64(brightness))
+	// briSlider.SetValue(float64(brightness))
 
 	lbl, _ = gtk.LabelNew("")
 	_ = lbl.SetProperty("halign", gtk.ALIGN_END)
 	lbl.SetMarkup("<tt>Contrast:</tt>")
 	grid.Attach(lbl, 0, 1, 1, 1)
 
-	conSlider, _ := gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 100, 1)
+	conSlider, _ = gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 100, 1)
 	grid.Attach(conSlider, 1, 1, 2, 1)
-	conSlider.SetValue(float64(contrast))
+	// conSlider.SetValue(float64(contrast))
 
 	lbl, _ = gtk.LabelNew("")
 	_ = lbl.SetProperty("halign", gtk.ALIGN_END)
@@ -114,7 +118,7 @@ func main() {
 	grid.Attach(lbl, 0, 2, 1, 1)
 
 	if presets != nil {
-		combo, _ := gtk.ComboBoxTextNew()
+		combo, _ = gtk.ComboBoxTextNew()
 		for _, preset := range presets {
 			vals := strings.Split(preset, ": ")
 			id := fmt.Sprintf("0x%s", vals[0])
@@ -122,8 +126,8 @@ func main() {
 			text := vals[1]
 			combo.Append(id, text)
 		}
-		fmt.Println("activePreset = ", activePreset)
-		combo.SetActiveID(activePreset)
+		// fmt.Println("activePreset = ", activePreset)
+		// combo.SetActiveID(activePreset)
 		grid.Attach(combo, 1, 2, 1, 1)
 	}
 
@@ -136,5 +140,26 @@ func main() {
 	})
 
 	win.ShowAll()
+
+	go func() {
+		briSlider.SetValue(float64(getBrightness()))
+		conSlider.SetValue(float64(getContrast()))
+		combo.SetActiveID(getActivePreset())
+	}()
+
+	// time.Sleep(300 * time.Millisecond)
+
+	// go func(msg string) {
+	// 	fmt.Println(msg)
+	// 	conSlider.SetValue(float64(getContrast()))
+	// }("contrast")
+
+	// time.Sleep(300 * time.Millisecond)
+
+	// go func(msg string) {
+	// 	fmt.Println(msg)
+	// 	combo.SetActiveID(getActivePreset())
+	// }("preset")
+
 	gtk.Main()
 }
