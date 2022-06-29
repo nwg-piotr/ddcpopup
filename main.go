@@ -99,6 +99,7 @@ func main() {
 	grid.Attach(lbl, 0, 0, 1, 1)
 
 	briSlider, _ = gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 100, 1)
+	_ = briSlider.SetProperty("hexpand", true)
 	_ = briSlider.Connect("value-changed", func() {
 		briValueChanged = true
 	})
@@ -115,6 +116,7 @@ func main() {
 	grid.Attach(lbl, 0, 1, 1, 1)
 
 	conSlider, _ = gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 100, 1)
+	_ = conSlider.SetProperty("hexpand", true)
 	_ = conSlider.Connect("value-changed", func() {
 		conValueChanged = true
 	})
@@ -156,6 +158,7 @@ func main() {
 	})
 
 	win.ShowAll()
+	win.SetSizeRequest(win.GetAllocatedHeight()*2, 0)
 
 	go func() {
 		bri, e := getBrightness()
