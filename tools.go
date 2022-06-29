@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -134,15 +135,19 @@ func getPresets() (name string, presets []string, e error) {
 			}
 		}
 
-		for _, line := range lines[here+2:] {
-			if !strings.Contains(line, "Feature") {
-				presets = append(presets, strings.TrimSpace(line))
-			} else {
-				break
+		if here != -1 {
+			for _, line := range lines[here+2:] {
+				if !strings.Contains(line, "Feature") {
+					presets = append(presets, strings.TrimSpace(line))
+				} else {
+					break
+				}
 			}
+			return name, presets, nil
+		} else {
+			return "Unrecognized", presets, errors.New("error parsing capabilities")
 		}
 
-		return name, presets, nil
 	}
 	return "", nil, err
 }
