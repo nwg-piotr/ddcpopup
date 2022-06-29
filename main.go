@@ -28,10 +28,14 @@ var (
 
 var executor = flag.Bool("e", false, "print brightness Executor data")
 var label = flag.String("l", "", "print this Label instead of image path")
-var busNum = flag.Int("b", -1, "Bus number for /dev/i2c-<number>")
+var busNum = flag.Int("b", -1, "Bus number for /dev/i2c-<number> (Required; check 'ddcutil 'detect')")
 var debug = flag.Bool("d", false, "turn on Debug messages")
 var iconSet = flag.String("i", "light", "Icon set to use")
 var displayVersion = flag.Bool("v", false, "display Version information")
+var hpos = flag.String("hpos", "", "window Horizontal POSition: 'left', 'right' or none for center (Wayland)")
+var vpos = flag.String("vpos", "", "window Vertical POSition: 'top', 'bottom' or none for center (Wayland)")
+var hm = flag.Int("hm", 0, "window Horizontal Margin (Wayland)")
+var vm = flag.Int("vm", 0, "window Vertical Margin (Wayland)")
 
 func main() {
 	timeStart = time.Now()
@@ -91,6 +95,29 @@ func main() {
 
 	if wayland {
 		layershell.InitForWindow(win)
+		layershell.SetLayer(win, layershell.LAYER_SHELL_LAYER_TOP)
+
+		if *hpos == "left" {
+			layershell.SetAnchor(win, layershell.LAYER_SHELL_EDGE_LEFT, true)
+		} else if *hpos == "right" {
+			layershell.SetAnchor(win, layershell.LAYER_SHELL_EDGE_RIGHT, true)
+		}
+
+		if *vpos == "top" {
+			layershell.SetAnchor(win, layershell.LAYER_SHELL_EDGE_TOP, true)
+		} else if *vpos == "bottom" {
+			layershell.SetAnchor(win, layershell.LAYER_SHELL_EDGE_BOTTOM, true)
+		}
+
+		if *hm != 0 {
+			layershell.SetMargin(win, layershell.LAYER_SHELL_EDGE_LEFT, *hm)
+			layershell.SetMargin(win, layershell.LAYER_SHELL_EDGE_RIGHT, *hm)
+		}
+
+		if *vm != 0 {
+			layershell.SetMargin(win, layershell.LAYER_SHELL_EDGE_TOP, *vm)
+			layershell.SetMargin(win, layershell.LAYER_SHELL_EDGE_BOTTOM, *vm)
+		}
 	}
 
 	frame, _ := gtk.FrameNew(displayName)
