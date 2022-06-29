@@ -41,12 +41,7 @@ func getCommandOutput(command string) (string, error) {
 }
 
 func getBrightness() (int, error) {
-	var command string
-	if *busNum > -1 {
-		command = fmt.Sprintf("ddcutil getvcp 10 --bus=%v", *busNum)
-	} else {
-		command = "ddcutil getvcp 10"
-	}
+	command := fmt.Sprintf("ddcutil getvcp 10 --bus=%v", *busNum)
 	output, _ := getCommandOutput(command)
 	lines := strings.Split(output, "\n")
 	lineWithValue := ""
@@ -68,12 +63,7 @@ func getBrightness() (int, error) {
 }
 
 func getContrast() int {
-	var command string
-	if *busNum > -1 {
-		command = fmt.Sprintf("ddcutil getvcp 12 --bus=%v", *busNum)
-	} else {
-		command = "ddcutil getvcp 12"
-	}
+	command := fmt.Sprintf("ddcutil getvcp 12 --bus=%v", *busNum)
 	output, _ := getCommandOutput(command)
 	lines := strings.Split(output, "\n")
 	lineWithValue := ""
@@ -94,12 +84,7 @@ func getContrast() int {
 }
 
 func getActivePreset() (string, error) {
-	var command string
-	if *busNum > -1 {
-		command = fmt.Sprintf("ddcutil getvcp 14 --bus=%v", *busNum)
-	} else {
-		command = "ddcutil getvcp 14"
-	}
+	command := fmt.Sprintf("ddcutil getvcp 14 --bus=%v", *busNum)
 	output, err := getCommandOutput(command)
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
@@ -116,12 +101,7 @@ func getActivePreset() (string, error) {
 }
 
 func getPresets() (name string, presets []string, e error) {
-	var command string
-	if *busNum > -1 {
-		command = fmt.Sprintf("ddcutil capabilities --bus=%v", *busNum)
-	} else {
-		command = "ddcutil capabilities"
-	}
+	command := fmt.Sprintf("ddcutil capabilities --bus=%v", *busNum)
 	output, err := getCommandOutput(command)
 	if err == nil {
 		lines := strings.Split(output, "\n")

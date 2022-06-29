@@ -27,7 +27,7 @@ var (
 )
 
 var executor = flag.Bool("e", false, "print brightness Executor data")
-var busNum = flag.Int("b", -1, "Bus number for /dev/i2c-<bus number>")
+var busNum = flag.Int("b", -1, "Bus number for /dev/i2c-<number>")
 var debug = flag.Bool("d", false, "turn on Debug messages")
 var iconSet = flag.String("i", "light", "Icon set to use")
 var displayVersion = flag.Bool("v", false, "display Version information")
@@ -40,6 +40,10 @@ func main() {
 	}
 	if *displayVersion {
 		fmt.Printf("ddcpopup version %s\n", ver)
+		os.Exit(0)
+	}
+	if *busNum == -1 {
+		fmt.Println("Bus number required: -b <number>")
 		os.Exit(0)
 	}
 
@@ -66,12 +70,7 @@ func main() {
 	wayland = waylandSession()
 
 	name, presets, err := getPresets()
-	var displayName string
-	if *busNum > -1 {
-		displayName = fmt.Sprintf(" %s (%v) ", name, *busNum)
-	} else {
-		displayName = name
-	}
+	displayName := fmt.Sprintf(" %s (bus %v) ", name, *busNum)
 	if err != nil {
 		log.Error(err)
 	}
@@ -109,12 +108,7 @@ func main() {
 	})
 	_ = briSlider.Connect("button-release-event", func() {
 		if briValueChanged {
-			if *busNum != -1 {
-				launch(fmt.Sprintf("ddcutil setvcp 10 %v -b %v", int(briSlider.GetValue()), *busNum))
-			} else {
-				launch(fmt.Sprintf("ddcutil setvcp 10 %v", int(briSlider.GetValue())))
-			}
-
+			launch(fmt.Sprintf("ddcutil setvcp 10 %v -b %v --noverify", int(briSlider.GetValue()), *busNum))
 		}
 	})
 	grid.Attach(briSlider, 1, 0, 2, 1)
@@ -131,11 +125,7 @@ func main() {
 	})
 	_ = conSlider.Connect("button-release-event", func() {
 		if conValueChanged {
-			if *busNum != -1 {
-				launch(fmt.Sprintf("ddcutil setvcp 12 %v -b %v", int(conSlider.GetValue()), *busNum))
-			} else {
-				launch(fmt.Sprintf("ddcutil setvcp 12 %v", int(conSlider.GetValue())))
-			}
+			launch(fmt.Sprintf("ddcutil setvcp 12 %v -b %v --noverify", int(conSlider.GetValue()), *busNum))
 		}
 	})
 	grid.Attach(conSlider, 1, 1, 2, 1)
@@ -157,11 +147,7 @@ func main() {
 		combo.Connect("changed", func() {
 			dec, err := strconv.ParseInt(strings.Split(combo.GetActiveID(), "x")[1], 16, 64)
 			if err == nil {
-				if *busNum != -1 {
-					launch(fmt.Sprintf("ddcutil setvcp 14 %v -b %v", dec, *busNum))
-				} else {
-					launch(fmt.Sprintf("ddcutil setvcp 14 %v", dec))
-				}
+				launch(fmt.Sprintf("ddcutil setvcp 14 %v -b %v --noverify", dec, *busNum))
 			}
 		})
 	} else {
