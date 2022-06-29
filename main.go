@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 )
 
@@ -120,6 +121,12 @@ func main() {
 			text := values[1]
 			combo.Append(id, text)
 		}
+		combo.Connect("changed", func() {
+			dec, err := strconv.ParseInt(strings.Split(combo.GetActiveID(), "x")[1], 16, 64)
+			if err == nil {
+				launch(fmt.Sprintf("ddcutil setvcp 14 %v -b %v", dec, *busNum))
+			}
+		})
 	}
 
 	btn, _ := gtk.ButtonNew()

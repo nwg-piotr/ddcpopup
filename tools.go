@@ -9,6 +9,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"syscall"
 )
 
 func waylandSession() bool {
@@ -150,4 +151,22 @@ func getPresets() (name string, presets []string, e error) {
 
 	}
 	return "", nil, err
+}
+
+func launch(command string) {
+	log.Debugf("Executing: %s", command)
+	parts := strings.Split(command, " ")
+
+	cmd := exec.Command(parts[0], parts[1:]...)
+
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setsid: true,
+	}
+	if cmd.Start() != nil {
+		log.Warnf("Couldn't execute: %s", command)
+	} else {
+		go func() {
+			_ = cmd.Wait()
+		}()
+	}
 }
