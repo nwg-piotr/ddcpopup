@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -139,6 +140,7 @@ func getPresets() (name string, presets []string, e error) {
 
 func launch(command string) {
 	log.Debugf("Executing: %s", command)
+	tStart := time.Now()
 	parts := strings.Split(command, " ")
 
 	cmd := exec.Command(parts[0], parts[1:]...)
@@ -151,6 +153,8 @@ func launch(command string) {
 	} else {
 		go func() {
 			_ = cmd.Wait()
+			t := time.Now()
+			log.Debugf("It took %v ms.", t.Sub(tStart).Milliseconds())
 		}()
 	}
 }

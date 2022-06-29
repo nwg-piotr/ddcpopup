@@ -27,6 +27,7 @@ var (
 )
 
 var executor = flag.Bool("e", false, "print brightness Executor data")
+var label = flag.String("l", "", "print this Label instead of image path")
 var busNum = flag.Int("b", -1, "Bus number for /dev/i2c-<number>")
 var debug = flag.Bool("d", false, "turn on Debug messages")
 var iconSet = flag.String("i", "light", "Icon set to use")
@@ -44,7 +45,7 @@ func main() {
 	}
 	if *busNum == -1 {
 		fmt.Println("Bus number required: -b <number>")
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	iconsPath := path.Join(configDir(), fmt.Sprintf("nwg-panel/icons_%v", *iconSet))
@@ -53,17 +54,24 @@ func main() {
 	if *executor {
 		bri, err := getBrightness()
 		if err == nil {
-			iconName := "display-brightness-low-symbolic"
-			if bri > 70 {
-				iconName = "display-brightness-high-symbolic"
-			} else if bri >= 30 {
-				iconName = "display-brightness-medium-symbolic"
+			if *label == "" {
+				// 2 lines (image path / value) for nwg-panel or Tint2
+				iconName := "display-brightness-low-symbolic"
+				if bri > 70 {
+					iconName = "display-brightness-high-symbolic"
+				} else if bri >= 30 {
+					iconName = "display-brightness-medium-symbolic"
+				}
+				fmt.Printf("%s.svg\n", path.Join(iconsPath, iconName))
+				fmt.Printf("%v%%\n", bri)
+			} else {
+				// One-liner for textual panels
+				fmt.Printf("%s %v%%\n", *label, bri)
 			}
-			fmt.Printf("%s.svg\n", path.Join(iconsPath, iconName))
-			fmt.Printf("%v%%\n", bri)
 			os.Exit(0)
 		} else {
-			log.Panic(err)
+			log.Error(err)
+			os.Exit(1)
 		}
 	}
 
@@ -185,7 +193,7 @@ func main() {
 			log.Error(e)
 		}
 		t := time.Now()
-		log.Debugf("Execution time: %v ms", t.Sub(timeStart).Milliseconds())
+		log.Debugf("Startup time: %v ms", t.Sub(timeStart).Milliseconds())
 	}()
 
 	gtk.Main()
