@@ -11,7 +11,7 @@ import (
 )
 
 func waylandSession() bool {
-	return os.Getenv("WAYLAND_DISPLAY") != "" || os.Getenv("XDG_SESSION_TYPE") == "waylandSession"
+	return os.Getenv("WAYLAND_DISPLAY") != "" || strings.Contains(os.Getenv("XDG_SESSION_TYPE"), "wayland")
 }
 
 func configDir() string {
@@ -26,16 +26,18 @@ func configDir() string {
 }
 
 func getCommandOutput(command string) (string, error) {
-	log.Debugf("Command: %s", command)
+	log.Debugf("CMD: %s", command)
 	elements := strings.Split(command, " ")
 	c, b := exec.Command(elements[0], elements[1:]...), new(strings.Builder)
 	c.Stdout = b
 	err := c.Run()
+	output := b.String()
+	log.Debugf("OUT: %s", output)
 
-	return b.String(), err
+	return output, err
 }
 
-func getBrightness() int {
+func getBrightness() (int, error) {
 	var command string
 	if *busNum > -1 {
 		command = fmt.Sprintf("ddcutil getvcp 10 --bus=%v", *busNum)
@@ -50,15 +52,16 @@ func getBrightness() int {
 			lineWithValue = strings.Split(line, ",")[0]
 		}
 	}
+	var e error
 	if lineWithValue != "" {
 		parts := strings.Split(lineWithValue, " ")
 		strVal := parts[len(parts)-1]
-		intVal, err := strconv.Atoi(strVal)
-		if err == nil {
-			return intVal
+		intVal, e := strconv.Atoi(strVal)
+		if e == nil {
+			return intVal, nil
 		}
 	}
-	return 0
+	return 0, e
 }
 
 func getContrast() int {
@@ -87,27 +90,26 @@ func getContrast() int {
 	return 0
 }
 
-func getActivePreset() string {
+func getActivePreset() (string, error) {
 	var command string
 	if *busNum > -1 {
 		command = fmt.Sprintf("ddcutil getvcp 14 --bus=%v", *busNum)
 	} else {
 		command = "ddcutil getvcp 14"
 	}
-	output, _ := getCommandOutput(command)
+	output, err := getCommandOutput(command)
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		if strings.Contains(line, "Select color preset") {
-			parts := strings.Split(line, " ")
-			part := parts[len(parts)-1]
-			if strings.Contains(part, "sl=0x") {
-				val := strings.Split(part, "=")[1]
-				val = val[:len(val)-1]
-				return val
+			values := strings.Split(line, ":")[1]
+			preset := strings.Split(values, ",")[0]
+			xPos := strings.Index(preset, "x")
+			if len(preset) >= xPos+3 {
+				return preset[xPos-1 : xPos+3], nil
 			}
 		}
 	}
-	return ""
+	return "", err
 }
 
 func getPresets() (name string, presets []string, e error) {

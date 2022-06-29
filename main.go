@@ -3,13 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-	"path"
-	"strings"
-
 	"github.com/dlasky/gotk3-layershell/layershell"
 	"github.com/gotk3/gotk3/gtk"
 	log "github.com/sirupsen/logrus"
+	"os"
+	"path"
+	"strings"
 )
 
 const ver = "0.0.1"
@@ -41,29 +40,33 @@ func main() {
 	log.Debugf("Icons path: %s", iconsPath)
 
 	if *executor {
-		bri := getBrightness()
-		iconName := "display-brightness-low-symbolic"
-		if bri > 70 {
-			iconName = "display-brightness-high-symbolic"
-		} else if bri >= 30 {
-			iconName = "display-brightness-medium-symbolic"
+		bri, err := getBrightness()
+		if err == nil {
+			iconName := "display-brightness-low-symbolic"
+			if bri > 70 {
+				iconName = "display-brightness-high-symbolic"
+			} else if bri >= 30 {
+				iconName = "display-brightness-medium-symbolic"
+			}
+			fmt.Printf("%s.svg\n", path.Join(iconsPath, iconName))
+			fmt.Printf("%v%%\n", bri)
+			os.Exit(0)
+		} else {
+			log.Panic(err)
 		}
-		fmt.Printf("%s.svg\n", path.Join(iconsPath, iconName))
-		fmt.Printf("%v%%\n", bri)
-		os.Exit(0)
 	}
 
 	wayland = waylandSession()
 
-	// brightness := getBrightness()
-	// contrast := getContrast()
-	// activePreset := getActivePreset()
 	name, presets, err := getPresets()
-	if err == nil {
-		fmt.Println(name)
-		for _, preset := range presets {
-			fmt.Printf("'%s'\n", preset)
-		}
+	var displayName string
+	if *busNum > -1 {
+		displayName = fmt.Sprintf(" %s (%v) ", name, *busNum)
+	} else {
+		displayName = name
+	}
+	if err != nil {
+		log.Error(err)
 	}
 
 	gtk.Init(nil)
@@ -76,12 +79,6 @@ func main() {
 		layershell.InitForWindow(win)
 	}
 
-	var displayName string
-	if *busNum > -1 {
-		displayName = fmt.Sprintf(" %s (%v) ", name, *busNum)
-	} else {
-		displayName = name
-	}
 	frame, _ := gtk.FrameNew(displayName)
 	_ = frame.SetProperty("margin", 6)
 	frame.SetLabelAlign(0.5, 0.5)
@@ -90,7 +87,6 @@ func main() {
 	grid, _ := gtk.GridNew()
 	grid.SetColumnSpacing(6)
 	grid.SetRowSpacing(12)
-	// grid.SetColumnHomogeneous(true)
 	_ = grid.SetProperty("margin", 6)
 	frame.Add(grid)
 
@@ -101,7 +97,6 @@ func main() {
 
 	briSlider, _ = gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 100, 1)
 	grid.Attach(briSlider, 1, 0, 2, 1)
-	// briSlider.SetValue(float64(brightness))
 
 	lbl, _ = gtk.LabelNew("")
 	_ = lbl.SetProperty("halign", gtk.ALIGN_END)
@@ -110,25 +105,21 @@ func main() {
 
 	conSlider, _ = gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 100, 1)
 	grid.Attach(conSlider, 1, 1, 2, 1)
-	// conSlider.SetValue(float64(contrast))
 
 	lbl, _ = gtk.LabelNew("")
 	_ = lbl.SetProperty("halign", gtk.ALIGN_END)
 	lbl.SetMarkup("<tt>Preset:</tt>")
 	grid.Attach(lbl, 0, 2, 1, 1)
 
+	combo, _ = gtk.ComboBoxTextNew()
+	grid.Attach(combo, 1, 2, 1, 1)
 	if presets != nil {
-		combo, _ = gtk.ComboBoxTextNew()
 		for _, preset := range presets {
-			vals := strings.Split(preset, ": ")
-			id := fmt.Sprintf("0x%s", vals[0])
-			fmt.Println("id = ", id)
-			text := vals[1]
+			values := strings.Split(preset, ": ")
+			id := fmt.Sprintf("0x%s", values[0])
+			text := values[1]
 			combo.Append(id, text)
 		}
-		// fmt.Println("activePreset = ", activePreset)
-		// combo.SetActiveID(activePreset)
-		grid.Attach(combo, 1, 2, 1, 1)
 	}
 
 	btn, _ := gtk.ButtonNew()
@@ -142,24 +133,21 @@ func main() {
 	win.ShowAll()
 
 	go func() {
-		briSlider.SetValue(float64(getBrightness()))
+		bri, e := getBrightness()
+		if e == nil {
+			briSlider.SetValue(float64(bri))
+		} else {
+			log.Error(e)
+		}
+
 		conSlider.SetValue(float64(getContrast()))
-		combo.SetActiveID(getActivePreset())
+		preset, e := getActivePreset()
+		if e == nil {
+			combo.SetActiveID(preset)
+		} else {
+			log.Error(e)
+		}
 	}()
-
-	// time.Sleep(300 * time.Millisecond)
-
-	// go func(msg string) {
-	// 	fmt.Println(msg)
-	// 	conSlider.SetValue(float64(getContrast()))
-	// }("contrast")
-
-	// time.Sleep(300 * time.Millisecond)
-
-	// go func(msg string) {
-	// 	fmt.Println(msg)
-	// 	combo.SetActiveID(getActivePreset())
-	// }("preset")
 
 	gtk.Main()
 }
