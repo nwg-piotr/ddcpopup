@@ -15,10 +15,12 @@ import (
 const ver = "0.0.1"
 
 var (
-	wayland   bool
-	briSlider *gtk.Scale
-	conSlider *gtk.Scale
-	combo     *gtk.ComboBoxText
+	wayland         bool
+	briValueChanged bool
+	conValueChanged bool
+	briSlider       *gtk.Scale
+	conSlider       *gtk.Scale
+	combo           *gtk.ComboBoxText
 )
 
 var executor = flag.Bool("e", false, "print brightness Executor data")
@@ -97,6 +99,14 @@ func main() {
 	grid.Attach(lbl, 0, 0, 1, 1)
 
 	briSlider, _ = gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 100, 1)
+	_ = briSlider.Connect("value-changed", func() {
+		briValueChanged = true
+	})
+	_ = briSlider.Connect("button-release-event", func() {
+		if briValueChanged {
+			launch(fmt.Sprintf("ddcutil setvcp 10 %v -b %v", int(briSlider.GetValue()), *busNum))
+		}
+	})
 	grid.Attach(briSlider, 1, 0, 2, 1)
 
 	lbl, _ = gtk.LabelNew("")
@@ -105,6 +115,14 @@ func main() {
 	grid.Attach(lbl, 0, 1, 1, 1)
 
 	conSlider, _ = gtk.ScaleNewWithRange(gtk.ORIENTATION_HORIZONTAL, 0, 100, 1)
+	_ = conSlider.Connect("value-changed", func() {
+		conValueChanged = true
+	})
+	_ = conSlider.Connect("button-release-event", func() {
+		if conValueChanged {
+			launch(fmt.Sprintf("ddcutil setvcp 12 %v -b %v", int(conSlider.GetValue()), *busNum))
+		}
+	})
 	grid.Attach(conSlider, 1, 1, 2, 1)
 
 	lbl, _ = gtk.LabelNew("")
@@ -143,6 +161,7 @@ func main() {
 		bri, e := getBrightness()
 		if e == nil {
 			briSlider.SetValue(float64(bri))
+			briValueChanged = false
 		} else {
 			log.Error(e)
 		}
@@ -151,6 +170,7 @@ func main() {
 		preset, e := getActivePreset()
 		if e == nil {
 			combo.SetActiveID(preset)
+			conValueChanged = false
 		} else {
 			log.Error(e)
 		}
