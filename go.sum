@@ -1,3 +1,5 @@
+github.com/allan-simon/go-singleinstance v0.0.0-20210120080615-d0997106ab37 h1:28uU3TtuvQ6KRndxg9TrC868jBWmSKgh0GTXkACCXmA=
+github.com/allan-simon/go-singleinstance v0.0.0-20210120080615-d0997106ab37/go.mod h1:6AXRstqK+32jeFmw89QGL2748+dj34Av4xc/I9oo9BY=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dlasky/gotk3-layershell v0.0.0-20210827021656-e6ecab2731f7 h1:LDo0kwt+oW9a4lWlj2OakIgMW1ySXXVRGFt8GHUdYYA=

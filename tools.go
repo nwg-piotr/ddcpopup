@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
@@ -13,8 +14,28 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func tempDir() string {
+	if os.Getenv("TMPDIR") != "" {
+		return os.Getenv("TMPDIR")
+	} else if os.Getenv("TEMP") != "" {
+		return os.Getenv("TEMP")
+	} else if os.Getenv("TMP") != "" {
+		return os.Getenv("TMP")
+	}
+	return "/tmp"
+}
+
 func waylandSession() bool {
 	return os.Getenv("WAYLAND_DISPLAY") != "" || strings.Contains(os.Getenv("XDG_SESSION_TYPE"), "wayland")
+}
+
+func readTextFile(path string) (string, error) {
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+
+	return string(bytes), nil
 }
 
 func getCommandOutput(command string) (string, error) {

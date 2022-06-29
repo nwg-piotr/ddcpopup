@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/allan-simon/go-singleinstance"
 	"os"
 	"path"
 	"strconv"
@@ -38,8 +39,30 @@ var hm = flag.Int("hm", 0, "window Horizontal Margin (Wayland)")
 var vm = flag.Int("vm", 0, "window Vertical Margin (Wayland)")
 
 func main() {
-	timeStart = time.Now()
 	flag.Parse()
+
+	if !*executor {
+		lockFilePath := fmt.Sprintf("%s/ddcpopup.lock", tempDir())
+		lockFile, err := singleinstance.CreateLockFile(lockFilePath)
+		if err != nil {
+			pid, err := readTextFile(lockFilePath)
+			if err == nil {
+				i, _ := strconv.Atoi(pid)
+				log.Warnf("Process already running: %v", i)
+				os.Exit(0)
+			}
+			os.Exit(0)
+		}
+		defer func(lockFile *os.File) {
+			err := lockFile.Close()
+			if err != nil {
+				log.Warn(err)
+			}
+		}(lockFile)
+	}
+
+	timeStart = time.Now()
+
 	if *debug {
 		log.SetLevel(log.DebugLevel)
 	}
