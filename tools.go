@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"strconv"
 	"strings"
 	"syscall"
@@ -16,17 +15,6 @@ import (
 
 func waylandSession() bool {
 	return os.Getenv("WAYLAND_DISPLAY") != "" || strings.Contains(os.Getenv("XDG_SESSION_TYPE"), "wayland")
-}
-
-func configDir() string {
-	var dir string
-	if os.Getenv("XDG_CONFIG_HOME") != "" {
-		dir = os.Getenv("XDG_CONFIG_HOME")
-	} else if os.Getenv("HOME") != "" {
-		dir = path.Join(os.Getenv("HOME"), ".config")
-	}
-
-	return dir
 }
 
 func getCommandOutput(command string) (string, error) {
@@ -41,7 +29,7 @@ func getCommandOutput(command string) (string, error) {
 	return output, err
 }
 
-func getBrightness() (int, error) {
+func getBrightness() int {
 	command := fmt.Sprintf("ddcutil getvcp 10 --bus=%v", *busNum)
 	output, _ := getCommandOutput(command)
 	lines := strings.Split(output, "\n")
@@ -51,16 +39,15 @@ func getBrightness() (int, error) {
 			lineWithValue = strings.Split(line, ",")[0]
 		}
 	}
-	var e error
 	if lineWithValue != "" {
 		parts := strings.Split(lineWithValue, " ")
 		strVal := parts[len(parts)-1]
 		intVal, e := strconv.Atoi(strVal)
 		if e == nil {
-			return intVal, nil
+			return intVal
 		}
 	}
-	return 0, e
+	return -1
 }
 
 func getContrast() int {

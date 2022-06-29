@@ -62,8 +62,8 @@ func main() {
 	log.Debugf("Icons path: %s", iconsPath)
 
 	if *executor {
-		bri, err := getBrightness()
-		if err == nil {
+		bri := getBrightness()
+		if bri >= 0 {
 			if *label == "" {
 				// 2 lines (image path / value) for nwg-panel or Tint2
 				var iconName string
@@ -84,7 +84,6 @@ func main() {
 			}
 			os.Exit(0)
 		} else {
-			log.Error(err)
 			os.Exit(1)
 		}
 	}
@@ -213,12 +212,10 @@ func main() {
 	win.SetSizeRequest(win.GetAllocatedHeight()*2, 0)
 
 	go func() {
-		bri, e := getBrightness()
-		if e == nil {
+		bri := getBrightness()
+		if bri > -1 {
 			briSlider.SetValue(float64(bri))
 			briValueChanged = false
-		} else {
-			log.Error(e)
 		}
 
 		conSlider.SetValue(float64(getContrast()))
