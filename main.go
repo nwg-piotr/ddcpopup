@@ -7,6 +7,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dlasky/gotk3-layershell/layershell"
 	"github.com/gotk3/gotk3/gtk"
@@ -22,6 +23,7 @@ var (
 	briSlider       *gtk.Scale
 	conSlider       *gtk.Scale
 	combo           *gtk.ComboBoxText
+	timeStart       time.Time
 )
 
 var executor = flag.Bool("e", false, "print brightness Executor data")
@@ -31,6 +33,7 @@ var iconSet = flag.String("i", "light", "Icon set to use")
 var displayVersion = flag.Bool("v", false, "display Version information")
 
 func main() {
+	timeStart = time.Now()
 	flag.Parse()
 	if *debug {
 		log.SetLevel(log.DebugLevel)
@@ -195,6 +198,8 @@ func main() {
 		} else {
 			log.Error(e)
 		}
+		t := time.Now()
+		log.Debugf("Execution time: %v ms", t.Sub(timeStart).Milliseconds())
 	}()
 
 	gtk.Main()
