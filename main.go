@@ -30,7 +30,7 @@ var executor = flag.Bool("e", false, "print brightness Executor data")
 var label = flag.String("l", "", "print this Label instead of image path")
 var busNum = flag.Int("b", -1, "Bus number for /dev/i2c-<number> (Required; check 'ddcutil 'detect')")
 var debug = flag.Bool("d", false, "turn on Debug messages")
-var iconSet = flag.String("i", "light", "Icon set to use")
+var darkIcons = flag.Bool("k", false, "use darK icons")
 var displayVersion = flag.Bool("v", false, "display Version information")
 var hpos = flag.String("hpos", "", "window Horizontal POSition: 'left', 'right' or none for center (Wayland)")
 var vpos = flag.String("vpos", "", "window Vertical POSition: 'top', 'bottom' or none for center (Wayland)")
@@ -52,7 +52,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	iconsPath := path.Join(configDir(), fmt.Sprintf("nwg-panel/icons_%v", *iconSet))
+	var iconsPath string
+	if *darkIcons {
+		iconsPath = path.Join("/usr/share/ddcpopup/icons/dark")
+	} else {
+		iconsPath = path.Join("/usr/share/ddcpopup/icons/light")
+	}
+
 	log.Debugf("Icons path: %s", iconsPath)
 
 	if *executor {
@@ -60,11 +66,13 @@ func main() {
 		if err == nil {
 			if *label == "" {
 				// 2 lines (image path / value) for nwg-panel or Tint2
-				iconName := "display-brightness-low-symbolic"
-				if bri > 70 {
-					iconName = "display-brightness-high-symbolic"
+				iconName := "brightness-off"
+				if bri > 10 {
+					iconName = "brightness-low"
 				} else if bri >= 30 {
-					iconName = "display-brightness-medium-symbolic"
+					iconName = "brightness-medium"
+				} else if bri >= 70 {
+					iconName = "brightness-high"
 				}
 				fmt.Printf("%s.svg\n", path.Join(iconsPath, iconName))
 				fmt.Printf("%v%%\n", bri)
