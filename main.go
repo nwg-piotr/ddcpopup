@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/dlasky/gotk3-layershell/layershell"
-	"github.com/gotk3/gotk3/gtk"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+
+	"github.com/dlasky/gotk3-layershell/layershell"
+	"github.com/gotk3/gotk3/gtk"
+	log "github.com/sirupsen/logrus"
 )
 
 const ver = "0.0.1"
@@ -105,7 +106,12 @@ func main() {
 	})
 	_ = briSlider.Connect("button-release-event", func() {
 		if briValueChanged {
-			launch(fmt.Sprintf("ddcutil setvcp 10 %v -b %v", int(briSlider.GetValue()), *busNum))
+			if *busNum != -1 {
+				launch(fmt.Sprintf("ddcutil setvcp 10 %v -b %v", int(briSlider.GetValue()), *busNum))
+			} else {
+				launch(fmt.Sprintf("ddcutil setvcp 10 %v", int(briSlider.GetValue())))
+			}
+
 		}
 	})
 	grid.Attach(briSlider, 1, 0, 2, 1)
@@ -122,7 +128,11 @@ func main() {
 	})
 	_ = conSlider.Connect("button-release-event", func() {
 		if conValueChanged {
-			launch(fmt.Sprintf("ddcutil setvcp 12 %v -b %v", int(conSlider.GetValue()), *busNum))
+			if *busNum != -1 {
+				launch(fmt.Sprintf("ddcutil setvcp 12 %v -b %v", int(conSlider.GetValue()), *busNum))
+			} else {
+				launch(fmt.Sprintf("ddcutil setvcp 12 %v", int(conSlider.GetValue())))
+			}
 		}
 	})
 	grid.Attach(conSlider, 1, 1, 2, 1)
@@ -144,9 +154,17 @@ func main() {
 		combo.Connect("changed", func() {
 			dec, err := strconv.ParseInt(strings.Split(combo.GetActiveID(), "x")[1], 16, 64)
 			if err == nil {
-				launch(fmt.Sprintf("ddcutil setvcp 14 %v -b %v", dec, *busNum))
+				if *busNum != -1 {
+					launch(fmt.Sprintf("ddcutil setvcp 14 %v -b %v", dec, *busNum))
+				} else {
+					launch(fmt.Sprintf("ddcutil setvcp 14 %v", dec))
+				}
 			}
 		})
+	} else {
+		combo.Append("unavailable", "unavailable")
+		combo.SetActiveID("unavailable")
+		combo.SetSensitive(false)
 	}
 
 	btn, _ := gtk.ButtonNew()

@@ -3,13 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"path"
 	"strconv"
 	"strings"
 	"syscall"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func waylandSession() bool {
@@ -125,10 +126,13 @@ func getPresets() (name string, presets []string, e error) {
 	if err == nil {
 		lines := strings.Split(output, "\n")
 
-		name = strings.Split(lines[0], " ")[1]
+		// name = strings.Split(lines[0], " ")[1]
 
 		here := -1
 		for i, line := range lines {
+			if strings.HasPrefix(line, "Model:") {
+				name = strings.Split(line, " ")[1]
+			}
 			if strings.Contains(line, "Feature: 14") {
 				here = i
 				log.Debugf("Feature 14 found in line %v", i)
@@ -150,7 +154,7 @@ func getPresets() (name string, presets []string, e error) {
 		}
 
 	}
-	return "", nil, err
+	return "unknown", nil, err
 }
 
 func launch(command string) {
