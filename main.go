@@ -66,13 +66,15 @@ func main() {
 		if err == nil {
 			if *label == "" {
 				// 2 lines (image path / value) for nwg-panel or Tint2
-				iconName := "brightness-off"
-				if bri > 10 {
-					iconName = "brightness-low"
-				} else if bri >= 30 {
+				var iconName string
+				if bri > 80 {
+					iconName = "brightness-full"
+				} else if bri >= 50 {
 					iconName = "brightness-medium"
-				} else if bri >= 70 {
-					iconName = "brightness-high"
+				} else if bri >= 20 {
+					iconName = "brightness-low"
+				} else {
+					iconName = "brightness-off"
 				}
 				fmt.Printf("%s.svg\n", path.Join(iconsPath, iconName))
 				fmt.Printf("%v%%\n", bri)
