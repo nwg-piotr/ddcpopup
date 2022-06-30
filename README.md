@@ -2,7 +2,8 @@
 
 This application is a part of the [nwg-shell](https://github.com/nwg-piotr/nwg-shell) project.
 
-`ddcpopup` is a simple frontend to [ddcutil](http://www.ddcutil.com). It provides 2 features:
+`ddcpopup` allows to control basic settings of external (not laptop built-in) monitors. It's a simple frontend to [ddcutil](http://www.ddcutil.com). 
+It provides 2 features:
 
 1. creates a GUI for brightness, contrast and monitor preset settings;
 2. returns textual output for use with panels/bars as a brightness widget:
